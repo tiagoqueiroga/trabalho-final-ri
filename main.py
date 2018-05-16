@@ -19,8 +19,13 @@ def busca_reports():
         print("Buscando observações com mídias na página:" + str(indice + 1) + " - site ufostalker.com")
         response = requests.get(define_url({"page":indice,"page_size":REPORTS_POR_PAGINA}))
         conteudo = response.json()["content"] 
-        reports = db.coleta_reports(conteudo)
-        db.grava_reports(conn,reports)
+        dados = db.coleta_dados(conteudo)
+
+        # Grava dados no banco
+        db.grava_reports(conn,dados["reports"])
+        db.grava_midias(conn,dados["midias"])
+      
+        # Controle dados
         indice = indice + 1
 
 def mostra_status_de_busca():
@@ -30,8 +35,10 @@ def mostra_status_de_busca():
 if __name__ == "__main__":
 
     # Cria conecao com banco de dados sqlite
-    conn = db.cria_conexao_sqlite(os.path.dirname(os.path.realpath(__file__)) + '/ufo_sighting.db')
-    db.cria_tabela_reports(conn)
+    conn = db.cria_conexao_sqlite(os.path.dirname(os.path.realpath(__file__)) + '/data/ufo_sightings.db')
+    
+    # Cria tabelas caso não esteja criadas
+    db.cria_tabelas(conn)
 
     # Busca apenas um caso para verificando que o site está online
     response = requests.get(define_url({"page":0,"page_size":1}))
